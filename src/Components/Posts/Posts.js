@@ -1,9 +1,34 @@
-import React from 'react';
-
+import React,{useState,useEffect,useContext} from 'react';
+import { collection, getDocs} from "firebase/firestore";
+import { useHistory } from 'react-router-dom';
 import Heart from '../../assets/Heart';
+import { firebaseContext } from '../../Store/FirebaseContext';
 import './Post.css';
+import { PostContext } from '../../Store/PostContext';
 
 function Posts() {
+
+  const {setPost} = useContext(PostContext)
+const {db} = useContext(firebaseContext)
+
+const [products,setProducts] = useState([])
+
+useEffect(async()=>{
+
+  const colRef = collection(db, 'products')
+
+      const snapshots = await getDocs(colRef)
+
+      const docs = snapshots.docs.map(doc=>{
+         const data = doc.data()
+         data.id = doc.id
+         return data
+       })
+       setProducts(docs)
+
+},[])
+
+const history = useHistory()
 
   return (
     <div className="postParentDiv">
@@ -13,24 +38,31 @@ function Posts() {
           <span>View more</span>
         </div>
         <div className="cards">
-          <div
+        
+        {
+          products.map(product =>{
+            return   <div
+            onClick={()=>{setPost(product);history.push('/view')}}
             className="card"
           >
             <div className="favorite">
               <Heart></Heart>
             </div>
             <div className="image">
-              <img src="../../../Images/R15V3.jpg" alt="" />
+              <img src={product.url} alt="image" />
             </div>
             <div className="content">
-              <p className="rate">&#x20B9; 250000</p>
-              <span className="kilometer">Two Wheeler</span>
-              <p className="name"> YAMAHA R15V3</p>
+              <p className="rate">&#x20B9; {product.price}</p>
+              <span className="kilometer">{product.category}</span>
+              <p className="name"> {product.name}</p>
             </div>
             <div className="date">
-              <span>Tue May 04 2021</span>
+              <span>{product.createdAt}</span>
             </div>
           </div>
+          })
+        }
+        
         </div>
       </div>
       <div className="recommendations">
